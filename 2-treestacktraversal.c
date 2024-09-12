@@ -1,5 +1,5 @@
-﻿#include<stdio.h>
-#include<stdlib.h>
+﻿#include <stdio.h>
+#include <stdlib.h>
 
 typedef struct TreeNode {
     int data;
@@ -8,22 +8,26 @@ typedef struct TreeNode {
 } TreeNode;
 
 typedef struct Stack {
-    TreeNode* data[100]; 
+    TreeNode* data[100];
     int top;
 } Stack;
+
 
 void initStack(Stack* stack) {
     stack->top = -1;
 }
 
+
 int isEmpty(Stack* stack) {
     return stack->top == -1;
 }
+
 
 void push(Stack* stack, TreeNode* node) {
     stack->data[++(stack->top)] = node;
     printf("push(%d) ", node->data);
 }
+
 
 TreeNode* pop(Stack* stack) {
     if (isEmpty(stack)) return NULL;
@@ -32,54 +36,66 @@ TreeNode* pop(Stack* stack) {
     return node;
 }
 
+
 void visit(TreeNode* node) {
     printf("visit(%d) ", node->data);
 }
 
-void GenerateArrayTree(int* tree) {
-    int list[] = { 1, 2, 9, 3, 5, 10, 13, 4, 6, 7, 8, 11, 12, 14, 15 };
-    for (int i = 0; i < 15; i++) {
-        tree[i] = list[i];
+
+void PlaceNode(TreeNode* node, int direction, int data) {
+    TreeNode* newNode = (TreeNode*)malloc(sizeof(TreeNode));
+    newNode->data = data;
+    newNode->left = NULL;
+    newNode->right = NULL;
+
+    if (direction == 0) { 
+        node->left = newNode;
+    }
+    else if (direction == 1) { 
+        node->right = newNode;
     }
 }
 
-void GenerateLinkTree(TreeNode** root) {
-    *root = (TreeNode*)malloc(sizeof(TreeNode));
-    (*root)->data = 1;
-    (*root)->left = (TreeNode*)malloc(sizeof(TreeNode));
-    (*root)->right = (TreeNode*)malloc(sizeof(TreeNode));
-    (*root)->left->data = 2;
-    (*root)->right->data = 9;
+void GenerateLinkTree(TreeNode* root) {
+    PlaceNode(root, 0, 2);    
+    PlaceNode(root, 1, 9);    
 
-    
-    (*root)->left->left = (TreeNode*)malloc(sizeof(TreeNode));
-    (*root)->left->right = (TreeNode*)malloc(sizeof(TreeNode));
-    (*root)->right->left = (TreeNode*)malloc(sizeof(TreeNode));
-    (*root)->right->right = (TreeNode*)malloc(sizeof(TreeNode));
+    PlaceNode(root->left, 0, 3);   
+    PlaceNode(root->left, 1, 5);   
+    PlaceNode(root->right, 0, 10); 
+    PlaceNode(root->right, 1, 13); 
 
-    (*root)->left->left->data = 3;
-    (*root)->left->right->data = 5;
-    (*root)->right->left->data = 10;
-    (*root)->right->right->data = 13;
+    PlaceNode(root->left->left, 0, 4); 
+    PlaceNode(root->left->left, 1, 6); 
+    PlaceNode(root->left->right, 0, 7); 
+    PlaceNode(root->left->right, 1, 8); 
 
-    (*root)->left->left->left = (TreeNode*)malloc(sizeof(TreeNode));
-    (*root)->left->left->right = (TreeNode*)malloc(sizeof(TreeNode));
-    (*root)->left->left->left->data = 4;
-    (*root)->left->left->right->data = 6;
-    (*root)->left->right->left = (TreeNode*)malloc(sizeof(TreeNode));
-    (*root)->left->right->right = (TreeNode*)malloc(sizeof(TreeNode));
-    (*root)->left->right->left->data = 7;
-    (*root)->left->right->right->data = 8;
-
-    (*root)->right->left->left = (TreeNode*)malloc(sizeof(TreeNode));
-    (*root)->right->left->right = (TreeNode*)malloc(sizeof(TreeNode));
-    (*root)->right->left->left->data = 11;
-    (*root)->right->left->right->data = 12;
-    (*root)->right->right->left = (TreeNode*)malloc(sizeof(TreeNode));
-    (*root)->right->right->right = (TreeNode*)malloc(sizeof(TreeNode));
-    (*root)->right->right->left->data = 14;
-    (*root)->right->right->right->data = 15;
+    PlaceNode(root->right->left, 0, 11); 
+    PlaceNode(root->right->left, 1, 12); 
+    PlaceNode(root->right->right, 0, 14); 
+    PlaceNode(root->right->right, 1, 15); 
 }
+
+
+void LinkPreOrder(TreeNode* node) {
+    if (node == NULL) return;
+    Stack stack;
+    initStack(&stack);
+    push(&stack, node);
+
+    while (!isEmpty(&stack)) {
+        TreeNode* current = pop(&stack);
+        visit(current);
+
+        if (current->right != NULL) {
+            push(&stack, current->right);
+        }
+        if (current->left != NULL) {
+            push(&stack, current->left);
+        }
+    }
+}
+
 
 void LinkInOrder(TreeNode* node) {
     Stack stack;
@@ -98,14 +114,60 @@ void LinkInOrder(TreeNode* node) {
     }
 }
 
-int main() {
-    TreeNode* root = NULL;
 
-    GenerateLinkTree(&root);
+void LinkPostOrder(TreeNode* node) {
+    if (node == NULL) return;
+
+    Stack stack1, stack2;
+    initStack(&stack1);
+    initStack(&stack2);
+
+    push(&stack1, node);
+
+    while (!isEmpty(&stack1)) {
+        TreeNode* current = pop(&stack1);
+        push(&stack2, current);
+
+        if (current->left != NULL) {
+            push(&stack1, current->left);
+        }
+        if (current->right != NULL) {
+            push(&stack1, current->right);
+        }
+    }
+
+    while (!isEmpty(&stack2)) {
+        visit(pop(&stack2));
+    }
+}
+
+
+void LinkOrders(TreeNode* root) {
+    printf("전위 순회:\n");
+    LinkPreOrder(root);
+    printf("\n\n");
 
     printf("중위 순회:\n");
     LinkInOrder(root);
+    printf("\n\n");
+
+    printf("후위 순회:\n");
+    LinkPostOrder(root);
     printf("\n");
+}
+
+int main() {
+    
+    TreeNode* root = (TreeNode*)malloc(sizeof(TreeNode));
+    root->data = 1;
+    root->left = NULL;
+    root->right = NULL;
+
+    
+    GenerateLinkTree(root);
+
+    
+    LinkOrders(root);
 
     return 0;
 }
